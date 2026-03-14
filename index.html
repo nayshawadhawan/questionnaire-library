@@ -1,63 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Questionnaire Data</title>
-    <script src="https://apis.google.com/js/api.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionnaire Library</title>
+<script src="https://apis.google.com/js/api.js"></script>
+<style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { cursor: pointer; background-color: #f2f2f2; }
+    tr:hover { background-color: #f9f9f9; }
+    tr.details { display: none; background-color: #eef; }
+    #search { padding: 8px; width: 50%; margin-bottom: 10px; }
+    a { color: blue; text-decoration: none; }
+</style>
 </head>
 <body>
-    <h1>Questionnaire Data</h1>
-    <div id="data"></div>
 
-    <script>
-        function init() {
-            gapi.client.init({
-                'apiKey': 'AIzaSyCGkFYhViB-DAVCH0RqpyV-Usv5AmgUr_o', 
-                'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-            }).then(function () {
-                return gapi.client.sheets.spreadsheets.values.get({
-                    // ✅ Only the spreadsheet ID, not the full URL
-                    spreadsheetId: '1jhmq563QLivfJvDOIwm8WEI5TBvy8imqrCA-Vmqy-Cc',
-                    // ✅ Adjust range to include all your columns/rows
-                    range: 'Sheet1!A1:R1000',
-                });
-            }).then(function (response) {
-                var data = response.result.values;
-                if (!data) {
-                    document.getElementById('data').innerHTML = 'No data found';
-                    return;
-                }
+<h1>Questionnaire Library</h1>
 
-                // ✅ Build a table instead of a list for clarity
-                var output = '<table border="1" cellspacing="0" cellpadding="5"><tr>';
-                
-                // Headers
-                for (var h = 0; h < data[0].length; h++) {
-                    output += '<th>' + data[0][h] + '</th>';
-                }
-                output += '</tr>';
+<input type="text" id="search" placeholder="Search by any field...">
 
-                // Rows
-                for (var i = 1; i < data.length; i++) {
-                    output += '<tr>';
-                    for (var j = 0; j < data[i].length; j++) {
-                        output += '<td>' + data[i][j] + '</td>';
-                    }
-                    output += '</tr>';
-                }
+<div id="data"></div>
 
-                output += '</table>';
-                document.getElementById('data').innerHTML = output;
+<script>
+function init() {
+    gapi.client.init({
+        'apiKey': 'AIzaSyCGkFYhViB-DAVCH0RqpyV-Usv5AmgUr_o',
+        'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+    }).then(function () {
+        return gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: '1jhmq563QLivfJvDOIwm8WEI5TBvy8imqrCA-Vmqy-Cc',
+            range: 'Sheet1!A1:R1000',
+        });
+    }).then(function (response) {
+        var data = response.result.values;
+        if (!data) { document.getElementById('data').innerHTML = 'No data found'; return; }
 
-            }, function (response) {
-                console.error('Error: ' + response.result.error.message);
-                document.getElementById('data').innerHTML = 'Error loading data';
-            });
+        var output = '<table id="table"><thead><tr>';
+        // Headers
+        for (var h = 0; h < data[0].length; h++) {
+            output += '<th>' + data[0][h] + '</th>';
+        }
+        output += '</tr></thead><tbody>';
+
+        for (var i = 1; i < data.length; i++) {
+            // Main row
+            output += '<tr class="main">';
+            for (var j = 0; j < data[i].length; j++) {
+                output += '<td>' + data[i][j] + '</td>';
+            }
+            output += '</tr>';
+
+            // Details row (expandable)
+            output += '<tr class="details"><td colspan="' + data[i].length + '">';
+            output += '<strong>SharePoint Link:</strong> ' + (data[i][15] ? '<a href="' + data[i][15] + '" target="_blank">Open</a>' : 'N/A') + '<br>';
+            output += '<strong>Scoring Method:</strong> ' + (data[i][12] || 'N/A') + '<br>';
+            output += '<strong>Condition to Use:</strong> ' + (data[i][13] || 'N/A') + '<br>';
+            output += '<strong>Non-English Versions:</strong> ' + (data[i][16] || 'N/A') + '<br>';
+            output += '</tr>';
         }
 
-        // Load the client and initialize
-        gapi.load('client', init);
-    </script>
+        output += '</tbody></table>';
+        document.getElementById('data').innerHTML = output;
+
+        // Search/filter
+        document.getElementById('search').addEventListener('input', function() {
+            var filter = this.value.toLowerCase();
+            var rows = document.querySelectorAll('#table tbody tr.main');
+            rows.forEach(function(row) {
+                var text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+                var details = row.nextElementSibling;
+                if (details) details.style.display = 'none'; // hide details on search
+            });
+        });
+
+        // Toggle details on click
+        document.querySelectorAll('#table tbody tr.main').forEach(function(row) {
+            row.addEventListener('click', function() {
+                var details = row.nextElementSibling;
+                if (details) details.style.display = details.style.display === 'table-row' ? 'none' : 'table-row';
+            });
+        });
+
+    }, function (response) {
+        console.error('Error: ' + response.result.error.message);
+        document.getElementById('data').innerHTML = 'Error loading data';
+    });
+}
+
+gapi.load('client', init);
+</script>
+
 </body>
 </html>
