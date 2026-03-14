@@ -88,7 +88,6 @@ function renderCards(data) {
             </div>
         `;
 
-        // Expand details on card click (except button)
         card.addEventListener('click', (e) => {
             if(e.target.className !== 'select-btn') {
                 const details = card.querySelector('.details');
@@ -96,9 +95,8 @@ function renderCards(data) {
             }
         });
 
-        // Select/Deselect button
         card.querySelector('.select-btn').addEventListener('click', (e) => {
-            e.stopPropagation(); // prevent triggering expand
+            e.stopPropagation();
             toggleSelect(card, index);
         });
 
@@ -106,7 +104,6 @@ function renderCards(data) {
     });
 }
 
-// ==== 3. Select/Deselect cards for AI ====
 function toggleSelect(card, index) {
     if(selectedCards.includes(index)) {
         selectedCards = selectedCards.filter(i => i !== index);
@@ -117,7 +114,6 @@ function toggleSelect(card, index) {
     }
 }
 
-// ==== 4. Search/filter functionality ====
 document.getElementById('search').addEventListener('input', function() {
     const filter = this.value.toLowerCase();
     document.querySelectorAll('.card').forEach(card => {
@@ -127,14 +123,14 @@ document.getElementById('search').addEventListener('input', function() {
     });
 });
 
-// ==== 5. AI Comparison ====
+// ==== 3. AI Comparison via server ====
 document.getElementById('compare-btn').addEventListener('click', async function() {
     if(selectedCards.length < 2) {
-        alert('Select at least 2 questionnaires using the "Select for Comparison" button to compare');
+        alert('Select at least 2 questionnaires to compare');
         return;
     }
 
-    let textToCompare = selectedCards.map(i => {
+    const textToCompare = selectedCards.map(i => {
         const item = allCards[i];
         return `Questionnaire: ${item['Questionaire name'] || item['Questionnaire name']}
 Short form: ${item['Short form of the questionnaire'] || ''}
@@ -151,17 +147,11 @@ Link: ${item['Sharepoint link to the questionnaire'] || ''}`;
     aiOutputDiv.innerHTML = 'Generating AI comparison...';
 
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        // Call your server endpoint (replace /compare with your server URL)
+        const response = await fetch('http://localhost:3000/compare', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer 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'
-            },
-            body: JSON.stringify({
-                model: "gpt-4",
-                messages: [{role:"user", content:`Compare these questionnaires and summarize differences, similarities, and recommend which is better for which scenario:\n\n${textToCompare}`}],
-                temperature: 0.7
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ textToCompare })
         });
         const data = await response.json();
         aiOutputDiv.innerHTML = data.choices[0].message.content;
@@ -171,6 +161,5 @@ Link: ${item['Sharepoint link to the questionnaire'] || ''}`;
     }
 });
 </script>
-
 </body>
 </html>
