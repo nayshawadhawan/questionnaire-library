@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionnaire Library</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; }
+        th { background-color: #f2f2f2; }
+        input[type="text"] { width: calc(100% - 20px); padding: 10px; margin: 5px 0; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Questionnaire Library</h1>
+    <input type="text" id="search" placeholder="Search..." onkeyup="filterTable()" />
+    <table id="questionnaireTable">
+        <thead>
+            <tr>
+                <th>Article Name</th>
+                <th>Questionnaire Name</th>
+                <th>Short Form</th>
+                <th>Administer</th>
+                <th>Year of Publish</th>
+                <th>Keywords</th>
+                <th>Target Age</th>
+                <th>Target Condition</th>
+                <th>Purpose of Questionnaire</th>
+                <th>Scale</th>
+                <th>Validation</th>
+                <th>Number of Questions</th>
+                <th>Scoring</th>
+                <th>Condition to Use</th>
+                <th>Credit in the Paper</th>
+                <th>SharePoint Link</th>
+                <th>Non-English Version</th>
+                <th>Extra Notes</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Data will be populated here from Google Sheets -->
+        </tbody>
+    </table>
+    <h2>Add New Questionnaire</h2>
+    <input type="text" id="articleName" placeholder="Article Name" />
+    <input type="text" id="questionnaireName" placeholder="Questionnaire Name" />
+    <input type="text" id="shortForm" placeholder="Short Form" />
+    <input type="text" id="administer" placeholder="Administer" />
+    <input type="text" id="year" placeholder="Year of Publish" />
+    <input type="text" id="keywords" placeholder="Keywords" />
+    <input type="text" id="targetAge" placeholder="Target Age" />
+    <input type="text" id="targetCondition" placeholder="Target Condition" />
+    <input type="text" id="purpose" placeholder="Purpose of Questionnaire" />
+    <input type="text" id="scale" placeholder="Scale" />
+    <input type="text" id="validation" placeholder="Validation" />
+    <input type="text" id="numQuestions" placeholder="Number of Questions" />
+    <input type="text" id="scoring" placeholder="Scoring" />
+    <input type="text" id="condition" placeholder="Condition to Use" />
+    <input type="text" id="credit" placeholder="Credit in the Paper" />
+    <input type="text" id="sharepointLink" placeholder="SharePoint Link" />
+    <input type="text" id="nonEnglishVersion" placeholder="Non-English Version" />
+    <input type="text" id="extraNotes" placeholder="Extra Notes" />
+    <button onclick="addQuestionnaire()">Add Questionnaire</button>
+
+    <script>
+        const sheetID = '1jhmq563QLivfJvDOIwm8WEI5TBvy8imqrCA-Vmqy-Cc';
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetID}/values/Sheet1?key=YOUR_API_KEY`;
+
+        async function fetchData() {
+            const response = await fetch(url);
+            const data = await response.json();
+            const rows = data.values;
+            const tableBody = document.getElementById('tableBody');
+            rows.forEach(row => {
+                const newRow = tableBody.insertRow();
+                row.forEach(cell => {
+                    const newCell = newRow.insertCell();
+                    newCell.textContent = cell;
+                });
+            });
+        }
+
+        function filterTable() {
+            const searchValue = document.getElementById('search').value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let found = false;
+                cells.forEach(cell => {
+                    if (cell.textContent.toLowerCase().includes(searchValue)) {
+                        found = true;
+                    }
+                });
+                row.style.display = found ? '' : 'none';
+            });
+        }
+
+        function addQuestionnaire() {
+            const data = {
+                articleName: document.getElementById('articleName').value,
+                questionnaireName: document.getElementById('questionnaireName').value,
+                shortForm: document.getElementById('shortForm').value,
+                administer: document.getElementById('administer').value,
+                year: document.getElementById('year').value,
+                keywords: document.getElementById('keywords').value,
+                targetAge: document.getElementById('targetAge').value,
+                targetCondition: document.getElementById('targetCondition').value,
+                purpose: document.getElementById('purpose').value,
+                scale: document.getElementById('scale').value,
+                validation: document.getElementById('validation').value,
+                numQuestions: document.getElementById('numQuestions').value,
+                scoring: document.getElementById('scoring').value,
+                condition: document.getElementById('condition').value,
+                credit: document.getElementById('credit').value,
+                sharepointLink: document.getElementById('sharepointLink').value,
+                nonEnglishVersion: document.getElementById('nonEnglishVersion').value,
+                extraNotes: document.getElementById('extraNotes').value,
+            };
+
+            // Add logic to send 'data' to Google Sheets API here
+
+            fetchData(); // Refresh table after adding
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
