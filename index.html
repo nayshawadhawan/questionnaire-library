@@ -9,6 +9,7 @@
 <body>
     <h1>Questionnaire Data</h1>
     <div id="data"></div>
+
     <script>
         function init() {
             gapi.client.init({
@@ -16,19 +17,46 @@
                 'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
             }).then(function () {
                 return gapi.client.sheets.spreadsheets.values.get({
-                    spreadsheetId: 1jhmq563QLivfJvDOIwm8WEI5TBvy8imqrCA-Vmqy-Cc
+                    // ✅ Only the spreadsheet ID, not the full URL
+                    spreadsheetId: '1jhmq563QLivfJvDOIwm8WEI5TBvy8imqrCA-Vmqy-Cc',
+                    // ✅ Adjust range to include all your columns/rows
+                    range: 'Sheet1!A1:R1000',
+                });
             }).then(function (response) {
                 var data = response.result.values;
-                var output = '<ul>';
-                for (var i = 0; i < data.length; i++) {
-                    output += '<li>' + data[i].join(': ') + '</li>';
+                if (!data) {
+                    document.getElementById('data').innerHTML = 'No data found';
+                    return;
                 }
-                output += '</ul>';
+
+                // ✅ Build a table instead of a list for clarity
+                var output = '<table border="1" cellspacing="0" cellpadding="5"><tr>';
+                
+                // Headers
+                for (var h = 0; h < data[0].length; h++) {
+                    output += '<th>' + data[0][h] + '</th>';
+                }
+                output += '</tr>';
+
+                // Rows
+                for (var i = 1; i < data.length; i++) {
+                    output += '<tr>';
+                    for (var j = 0; j < data[i].length; j++) {
+                        output += '<td>' + data[i][j] + '</td>';
+                    }
+                    output += '</tr>';
+                }
+
+                output += '</table>';
                 document.getElementById('data').innerHTML = output;
+
             }, function (response) {
                 console.error('Error: ' + response.result.error.message);
+                document.getElementById('data').innerHTML = 'Error loading data';
             });
         }
+
+        // Load the client and initialize
         gapi.load('client', init);
     </script>
 </body>
